@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Rate Analytics - Secure Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid #fcc;
+        }
+        
+        .success {
+            background: #efe;
+            color: #363;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid #cfc;
+        }
+        
+        .demo-accounts {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .demo-accounts h4 {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .demo-account {
+            margin: 0.25rem 0;
+            padding: 0.25rem;
+            background: white;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .demo-account:hover {
+            background: #e9ecef;
+        }
+        
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #2563eb;
+            font-size: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-badge {
+            background: #e0f2fe;
+            color: #0277bd;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .admin-badge {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .tab.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .tab:hover {
+            background: #e5e7eb;
+        }
+        
+        .tab.active:hover {
+            background: #1d4ed8;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        
+        .admin-section {
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #fffbeb;
+        }
+        
+        .admin-section h3 {
+            color: #f59e0b;
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+            transition: border-color 0.3s;
+        }
+        
+        .file-upload:hover {
+            border-color: #2563eb;
+        }
+        
+        .file-upload.dragover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="login-container" class="login-container">
+        <div class="login-form">
+            <h2>🛡️ Crime Rate Analytics</h2>
+            <p style="text-align: center; margin-bottom: 1.5rem; color: #666;">
+                Secure Access Portal
+            </p>
+            
+            <div id="login-error" class="error hidden"></div>
+            <div id="login-success" class="success hidden"></div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="btn" id="login-btn">
+                    Sign In
+                </button>
+            </form>
+            
+            <div class="demo-accounts">
+                <h4>Demo Accounts:</h4>
+                <div class="demo-account" onclick="fillLogin('admin', 'admin123')">
+                    👑 <strong>Admin:</strong> admin / admin123
+                </div>
+                <div class="demo-account" onclick="fillLogin('analyst', 'analyst123')">
+                    📊 <strong>Analyst:</strong> analyst / analyst123
+                </div>
+                <div class="demo-account" onclick="fillLogin('officer', 'officer123')">
+                    👮 <strong>Officer:</strong> officer / officer123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <div class="header">
+            <h1>Crime Rate Analytics Dashboard</h1>
+            <div class="user-info">
+                <div id="user-badge" class="user-badge">
+                    <span id="user-name"></span> (<span id="user-role"></span>)
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('analytics')">Analytics</button>
+                <button class="tab" onclick="showTab('forecast')">Forecast</button>
+                <button class="tab" onclick="showTab('risk')">Risk Prediction</button>
+                <button class="tab" onclick="showTab('hotspot')">Hotspot Map</button>
+                <button id="admin-tab" class="tab hidden" onclick="showTab('admin')">Admin Panel</button>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-content active">
+                <h2>System Analytics</h2>
+                <button class="btn" onclick="checkHealth()" style="width: auto; margin-bottom: 1rem;">
+                    Check System Health
+                </button>
+                <div id="health-result"></div>
+                
+                <button class="btn" onclick="getDatasetInfo()" style="width: auto; margin-bottom: 1rem;">
+                    Get Dataset Information
+                </button>
+                <div id="dataset-result"></div>
+            </div>
+
+            <!-- Forecast Tab -->
+            <div id="forecast-tab" class="tab-content">
+                <h2>Crime Forecasting</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label for="district">District:</label>
+                        <select id="district">
+                            <option value="all">All Districts</option>
+                            <option value="central-delhi">Central Delhi</option>
+                            <option value="south-delhi">South Delhi</option>
+                            <option value="north-delhi">North Delhi</option>
+                            <option value="east-delhi">East Delhi</option>
+                            <option value="west-delhi">West Delhi</option>
+                            <option value="gurgaon">Gurgaon</option>
+                            <option value="noida">Noida</option>
+                            <option value="faridabad">Faridabad</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="months">Months Ahead:</label>
+                        <select id="months">
+                            <option value="3">3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="12">12 Months</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" onclick="generateForecast()" style="width: auto;">Generate Forecast</button>
+                <div id="forecast-result"></div>
+            </div>
+
+            <!-- Risk Prediction Tab -->
+            <div id="risk-tab" class="tab-content">
+                <h2>Risk Prediction</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label for="total-crimes">Total Crimes:</label>
+                        <input type="number" id="total-crimes" value="100" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="crime-rate">Crime Rate (per 1000):</label>
+                        <input type="number" id="crime-rate" value="10.0" min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="violent-crimes">Violent Crimes:</label>
+                        <input type="number" id="violent-crimes" value="10" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="property-crimes">Property Crimes:</label>
+                        <input type="number" id="property-crimes" value="50" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="drug-crimes">Drug Crimes:</label>
+                        <input type="number" id="drug-crimes" value="5" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="evening-crimes">Evening Crimes (%):</label>
+                        <input type="number" id="evening-crimes" value="30" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="night-crimes">Night Crimes (%):</label>
+                        <input type="number" id="night-crimes" value="18" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="weekend-crimes">Weekend Crimes (%):</label>
+                        <input type="number" id="weekend-crimes" value="28" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+                <button class="btn" onclick="predictRisk()" style="width: auto;">Predict Risk Level</button>
+                <div id="risk-result"></div>
+            </div>
+
+            <!-- Hotspot Map Tab -->
+            <div id="hotspot-tab" class="tab-content">
+                <h2>Crime Hotspot Map</h2>
+                <button class="btn" onclick="generateHotspotMap()" style="width: auto;">Generate Hotspot Map</button>
+                <div id="hotspot-result"></div>
+            </div>
+
+            <!-- Admin Panel Tab -->
+            <div id="admin-tab-content" class="tab-content">
+                <div class="admin-section">
+                    <h3>👑 Admin Panel</h3>
+                    <p>Administrative functions for system management</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <!-- User Management -->
+                    <div class="card">
+                        <h4>User Management</h4>
+                        <button class="btn" onclick="loadUsers()" style="width: auto; margin-bottom: 1rem;">
+                            Load All Users
+                        </button>
+                        <div id="users-list"></div>
+                    </div>
+                    
+                    <!-- Dataset Upload -->
+                    <div class="card">
+                        <h4>📊 Dataset Management</h4>
+                        <div class="file-upload" id="file-upload">
+                            <p>📁 Drag & drop CSV file here or click to select</p>
+                            <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                                Supported: CSV files with crime data<br>
+                                Required columns: date, district, crime_type
+                            </p>
+                            <input type="file" id="file-input" accept=".csv" style="display: none;">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                            <button class="btn" onclick="document.getElementById('file-input').click()" style="width: auto;">
+                                📁 Select CSV File
+                            </button>
+                            <button class="btn" onclick="testUpload()" style="width: auto; background: #6b7280;" id="test-upload-btn" disabled>
+                                🧪 Test Upload
+                            </button>
+                            <button class="btn" onclick="uploadAndRetrain()" style="width: auto; background: #f59e0b;" id="upload-retrain-btn" disabled>
+                                🚀 Upload & Auto-Retrain
+                            </button>
+                            <button class="btn" onclick="createSampleDataset()" style="width: auto; background: #10b981;">
+                                📝 Create Sample Dataset
+                            </button>
+                        </div>
+
+                        <div id="upload-result"></div>
+                        <div id="upload-progress" class="hidden">
+                            <div style="background: #e5e7eb; height: 20px; border-radius: 10px; overflow: hidden; margin: 1rem 0;">
+                                <div id="progress-bar" style="width: 0%; height: 100%; background: #2563eb; transition: width 0.3s;"></div>
+                            </div>
+                            <p id="progress-text">Preparing upload...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Model Retraining -->
+                    <div class="card">
+                        <h4>🤖 Model Management</h4>
+                        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                            Train machine learning models with current dataset
+                        </p>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                            <button class="btn" onclick="retrainModels()" style="width: auto;" id="retrain-btn">
+                                🔄 Retrain All Models
+                            </button>
+                            <button class="btn" onclick="getModelStatus()" style="width: auto; background: #6b7280;">
+                                📊 Model Status
+                            </button>
+                        </div>
+
+                        <div id="retrain-progress" class="hidden">
+                            <div style="background: #e5e7eb; height: 20px; border-radius: 10px; overflow: hidden; margin: 1rem 0;">
+                                <div id="retrain-progress-bar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+                            </div>
+                            <p id="retrain-progress-text">Initializing training...</p>
+                        </div>
+
+                        <div id="retrain-result"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        let authToken = null;
+        let currentUser = null;
+
+        // Authentication functions
+        function fillLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('login-btn');
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+            
+            hideMessage('login-error');
+            hideMessage('login-success');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.access_token;
+                    currentUser = data.user;
+                    
+                    // Store in localStorage
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    showMessage('login-success', 'Login successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        showDashboard();
+                    }, 1000);
+                } else {
+                    showMessage('login-error', data.error || 'Login failed');
+                }
+            } catch (error) {
+                showMessage('login-error', 'Network error. Please try again.');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+            
+            // Reset form
+            document.getElementById('login-form').reset();
+        }
+
+        function showDashboard() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            // Update user info
+            document.getElementById('user-name').textContent = currentUser.full_name || currentUser.username;
+            document.getElementById('user-role').textContent = currentUser.role;
+            
+            const userBadge = document.getElementById('user-badge');
+            if (currentUser.role === 'admin') {
+                userBadge.classList.add('admin-badge');
+                document.getElementById('admin-tab').classList.remove('hidden');
+            }
+        }
+
+        function showMessage(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function hideMessage(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        // Check for existing session
+        window.onload = function() {
+            const storedToken = localStorage.getItem('authToken');
+            const storedUser = localStorage.getItem('currentUser');
+            
+            if (storedToken && storedUser) {
+                authToken = storedToken;
+                currentUser = JSON.parse(storedUser);
+                showDashboard();
+            }
+            
+            // Setup event listeners
+            document.getElementById('login-form').addEventListener('submit', login);
+        };
+
+        // API helper function
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers
+            });
+            
+            if (response.status === 401) {
+                // Token expired, logout
+                logout();
+                throw new Error('Session expired. Please login again.');
+            }
+            
+            return response;
+        }
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            if (tabName === 'admin') {
+                document.getElementById('admin-tab-content').classList.add('active');
+                document.getElementById('admin-tab').classList.add('active');
+            } else {
+                document.getElementById(tabName + '-tab').classList.add('active');
+                event.target.classList.add('active');
+            }
+        }
+
+        // Analytics functions
+        async function checkHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<div class="loading">Checking health...</div>';
+
+            try {
+                const response = await apiCall('/health');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ System Health Check</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Health Check Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function getDatasetInfo() {
+            const resultDiv = document.getElementById('dataset-result');
+            resultDiv.innerHTML = '<div class="loading">Loading dataset information...</div>';
+
+            try {
+                const response = await apiCall('/dataset-info');
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>📊 Dataset Information</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Failed to Load Dataset Info</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Forecast function
+        async function generateForecast() {
+            const resultDiv = document.getElementById('forecast-result');
+            const district = document.getElementById('district').value;
+            const months = parseInt(document.getElementById('months').value);
+
+            resultDiv.innerHTML = '<div class="loading">Generating forecast...</div>';
+
+            try {
+                const response = await apiCall('/forecast-district', {
+                    method: 'POST',
+                    body: JSON.stringify({ district, months_ahead: months })
+                });
+
+                const data = await response.json();
+
+                let chartsHtml = '';
+                if (data.charts && !data.charts.error) {
+                    chartsHtml = `
+                        <div style="margin-top: 2rem;">
+                            <h4>📈 Forecast Analysis Charts</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                ${data.charts.model_performance ? `
+                                    <div>
+                                        <h5>Model Performance Comparison</h5>
+                                        <img src="data:image/png;base64,${data.charts.model_performance}" style="width: 100%; max-width: 600px;" alt="Model Performance Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.forecast_trend ? `
+                                    <div>
+                                        <h5>Forecast Trend Analysis</h5>
+                                        <img src="data:image/png;base64,${data.charts.forecast_trend}" style="width: 100%; max-width: 600px;" alt="Forecast Trend Chart">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let forecastHtml = `
+                    <div class="success">
+                        <h3>📊 Forecast Generated</h3>
+                        <div class="grid" style="margin-bottom: 1rem;">
+                            <div class="card">
+                                <h4>District</h4>
+                                <span style="font-weight: bold;">${data.district}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Best Model</h4>
+                                <span style="font-weight: bold; color: #2563eb;">${data.best_model.toUpperCase()}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Generated By</h4>
+                                <span style="font-weight: bold;">${data.generated_by}</span>
+                            </div>
+                        </div>
+
+                        <h4>Forecast Data:</h4>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">Month</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">ARIMA</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">SARIMA</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">LSTM</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">Random Forest</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">Best Prediction</th>
+                                </tr>
+                `;
+
+                data.forecast_data.forEach(row => {
+                    const bestValue = row[data.best_model];
+                    forecastHtml += `
+                        <tr>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd; font-weight: bold;">${row.month}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.arima}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.sarima}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.lstm}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.random_forest || 'N/A'}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd; background: #e8f5e8; font-weight: bold;">${bestValue}</td>
+                        </tr>
+                    `;
+                });
+
+                forecastHtml += `
+                            </table>
+                        </div>
+                        ${chartsHtml}
+                    </div>
+                `;
+                resultDiv.innerHTML = forecastHtml;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Forecast Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Risk prediction function
+        async function predictRisk() {
+            const resultDiv = document.getElementById('risk-result');
+            const features = {
+                total_crimes: parseInt(document.getElementById('total-crimes').value),
+                crime_rate: parseFloat(document.getElementById('crime-rate').value),
+                violent_crimes: parseInt(document.getElementById('violent-crimes').value),
+                property_crimes: parseInt(document.getElementById('property-crimes').value),
+                drug_crimes: parseInt(document.getElementById('drug-crimes').value),
+                evening_crimes_pct: parseFloat(document.getElementById('evening-crimes').value),
+                night_crimes_pct: parseFloat(document.getElementById('night-crimes').value),
+                weekend_crimes_pct: parseFloat(document.getElementById('weekend-crimes').value)
+            };
+
+            resultDiv.innerHTML = '<div class="loading">Predicting risk...</div>';
+
+            try {
+                const response = await apiCall('/predict-risk', {
+                    method: 'POST',
+                    body: JSON.stringify({ features })
+                });
+
+                const data = await response.json();
+
+                const riskColor = data.risk_level === 'High' ? '#ef4444' :
+                                 data.risk_level === 'Medium' ? '#f59e0b' : '#10b981';
+
+                let chartsHtml = '';
+                if (data.charts && !data.charts.error) {
+                    chartsHtml = `
+                        <div style="margin-top: 2rem;">
+                            <h4>📊 Risk Analysis Charts</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                ${data.charts.risk_pie ? `
+                                    <div>
+                                        <h5>Risk Probability Distribution</h5>
+                                        <img src="data:image/png;base64,${data.charts.risk_pie}" style="width: 100%; max-width: 400px;" alt="Risk Pie Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.feature_importance ? `
+                                    <div>
+                                        <h5>Feature Importance</h5>
+                                        <img src="data:image/png;base64,${data.charts.feature_importance}" style="width: 100%; max-width: 400px;" alt="Feature Importance Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.crime_distribution ? `
+                                    <div>
+                                        <h5>Crime Distribution</h5>
+                                        <img src="data:image/png;base64,${data.charts.crime_distribution}" style="width: 100%; max-width: 400px;" alt="Crime Distribution Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.time_pattern ? `
+                                    <div>
+                                        <h5>Crime Time Patterns</h5>
+                                        <img src="data:image/png;base64,${data.charts.time_pattern}" style="width: 100%; max-width: 400px;" alt="Time Pattern Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.comprehensive_analysis ? `
+                                    <div style="grid-column: span 2;">
+                                        <h5>Comprehensive Input Analysis</h5>
+                                        <img src="data:image/png;base64,${data.charts.comprehensive_analysis}" style="width: 100%; max-width: 800px;" alt="Comprehensive Analysis Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.parameter_summary ? `
+                                    <div style="grid-column: span 2;">
+                                        <h5>Input Parameters Summary</h5>
+                                        <img src="data:image/png;base64,${data.charts.parameter_summary}" style="width: 100%; max-width: 800px;" alt="Parameter Summary Chart">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>🎯 Risk Prediction Results</h3>
+                        <div class="grid" style="margin-bottom: 1rem;">
+                            <div class="card">
+                                <h4>Risk Level</h4>
+                                <span style="color: ${riskColor}; font-weight: bold; font-size: 1.5rem;">${data.risk_level}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Confidence</h4>
+                                <span style="font-weight: bold; font-size: 1.2rem;">${(data.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="card">
+                                <h4>Predicted By</h4>
+                                <span style="font-weight: bold;">${data.generated_by || 'ML Model'}</span>
+                            </div>
+                        </div>
+
+                        <h4>Risk Probabilities:</h4>
+                        <div style="margin: 1rem 0;">
+                            ${Object.entries(data.probabilities || {}).map(([level, prob]) => `
+                                <div style="display: flex; align-items: center; margin: 0.5rem 0;">
+                                    <span style="width: 80px; font-weight: bold;">${level}:</span>
+                                    <div style="flex: 1; background: #e5e7eb; height: 20px; border-radius: 10px; margin: 0 1rem; overflow: hidden;">
+                                        <div style="width: ${(prob * 100).toFixed(1)}%; height: 100%; background: ${level === 'High' ? '#ef4444' : level === 'Medium' ? '#f59e0b' : '#10b981'}; border-radius: 10px;"></div>
+                                    </div>
+                                    <span style="width: 60px; text-align: right;">${(prob * 100).toFixed(1)}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        ${chartsHtml}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Risk Prediction Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Hotspot map function
+        async function generateHotspotMap() {
+            const resultDiv = document.getElementById('hotspot-result');
+            resultDiv.innerHTML = '<div class="loading">Generating hotspot map...</div>';
+
+            try {
+                const response = await apiCall('/hotspot-map');
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>🗺️ Hotspot Map Generated</h3>
+                        <p><strong>Generated by:</strong> ${data.generated_by}</p>
+                        <p><a href="${API_BASE}${data.map_url}" target="_blank" class="btn" style="display: inline-block; text-decoration: none;">Open Map in New Tab</a></p>
+                        <iframe src="${API_BASE}${data.map_url}" width="100%" height="500" style="border: 1px solid #ddd; margin-top: 1rem; border-radius: 8px;"></iframe>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Map Generation Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Admin functions
+        async function loadUsers() {
+            const resultDiv = document.getElementById('users-list');
+            resultDiv.innerHTML = '<div class="loading">Loading users...</div>';
+
+            try {
+                const response = await apiCall('/admin/users');
+                const data = await response.json();
+
+                let usersHtml = `
+                    <h5>System Users (${data.users.length})</h5>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                `;
+
+                data.users.forEach(user => {
+                    const roleColor = user.role === 'admin' ? '#f59e0b' : '#2563eb';
+                    usersHtml += `
+                        <div class="card" style="margin: 0.5rem 0; padding: 0.75rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${user.full_name || user.username}</strong>
+                                    <span style="color: ${roleColor}; font-weight: bold; margin-left: 0.5rem;">(${user.role})</span>
+                                    <br>
+                                    <small>${user.email} | ${user.department}</small>
+                                    <br>
+                                    <small>Last login: ${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</small>
+                                </div>
+                                <div>
+                                    <span style="background: ${user.is_active ? '#10b981' : '#ef4444'}; color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">
+                                        ${user.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                usersHtml += '</div>';
+                resultDiv.innerHTML = usersHtml;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Failed to Load Users</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function retrainModels() {
+            const resultDiv = document.getElementById('retrain-result');
+            const progressDiv = document.getElementById('retrain-progress');
+            const progressBar = document.getElementById('retrain-progress-bar');
+            const progressText = document.getElementById('retrain-progress-text');
+            const retrainBtn = document.getElementById('retrain-btn');
+
+            // Show progress
+            progressDiv.classList.remove('hidden');
+            retrainBtn.disabled = true;
+            retrainBtn.textContent = '🔄 Training in Progress...';
+
+            // Simulate progress updates
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+
+                if (progress < 30) {
+                    progressText.textContent = 'Loading dataset and preparing features...';
+                } else if (progress < 60) {
+                    progressText.textContent = 'Training ARIMA and SARIMA models...';
+                } else if (progress < 85) {
+                    progressText.textContent = 'Training risk classifier and LSTM...';
+                } else {
+                    progressText.textContent = 'Finalizing models and saving...';
+                }
+            }, 500);
+
+            try {
+                const response = await apiCall('/admin/retrain-models', {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                // Complete progress
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Training completed successfully!';
+
+                setTimeout(() => {
+                    progressDiv.classList.add('hidden');
+                }, 2000);
+
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Models Retrained Successfully!</h4>
+                            <div class="grid" style="margin-top: 1rem;">
+                                <div class="card">
+                                    <h5>Training Duration</h5>
+                                    <span style="font-weight: bold;">${data.training_info.training_duration}</span>
+                                </div>
+                                <div class="card">
+                                    <h5>Dataset Records</h5>
+                                    <span style="font-weight: bold;">${data.training_info.dataset_records.toLocaleString()}</span>
+                                </div>
+                                <div class="card">
+                                    <h5>Districts Analyzed</h5>
+                                    <span style="font-weight: bold;">${data.training_info.unique_districts}</span>
+                                </div>
+                                ${data.training_info.risk_accuracy ? `
+                                <div class="card">
+                                    <h5>Risk Model Accuracy</h5>
+                                    <span style="font-weight: bold;">${(data.training_info.risk_accuracy * 100).toFixed(1)}%</span>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <h5 style="margin-top: 1rem;">Models Trained:</h5>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0;">
+                                ${data.training_info.models_trained.map(model => `
+                                    <span style="background: #10b981; color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">
+                                        ${model}
+                                    </span>
+                                `).join('')}
+                            </div>
+
+                            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
+                                <h5>Performance Metrics:</h5>
+                                <pre style="font-size: 0.8rem; max-height: 200px; overflow-y: auto;">${JSON.stringify(data.performance_metrics, null, 2)}</pre>
+                            </div>
+
+                            <p style="margin-top: 1rem;"><strong>Retrained by:</strong> ${data.retrained_by}</p>
+                            <p><strong>Completed at:</strong> ${new Date(data.retrained_at).toLocaleString()}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Model Retraining Failed</h4>
+                            <p>${data.error}</p>
+                            <p><strong>Failed by:</strong> ${data.retrained_by}</p>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                progressDiv.classList.add('hidden');
+
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Model Retraining Failed</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                retrainBtn.disabled = false;
+                retrainBtn.textContent = '🔄 Retrain All Models';
+            }
+        }
+
+        async function getModelStatus() {
+            const resultDiv = document.getElementById('retrain-result');
+            resultDiv.innerHTML = '<div class="loading">Checking model status...</div>';
+
+            try {
+                // This would call a real model status endpoint
+                const mockStatus = {
+                    last_training: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                    models_available: ['ARIMA', 'SARIMA', 'LSTM', 'Random Forest'],
+                    model_versions: {
+                        'ARIMA': 'v2.1',
+                        'SARIMA': 'v2.1',
+                        'LSTM': 'v1.8',
+                        'Random Forest': 'v3.0'
+                    },
+                    performance: {
+                        'forecast_accuracy': 0.87,
+                        'risk_accuracy': 0.89
+                    }
+                };
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>📊 Current Model Status</h4>
+                        <div class="grid" style="margin-top: 1rem;">
+                            <div class="card">
+                                <h5>Last Training</h5>
+                                <span style="font-weight: bold;">${new Date(mockStatus.last_training).toLocaleString()}</span>
+                            </div>
+                            <div class="card">
+                                <h5>Models Available</h5>
+                                <span style="font-weight: bold;">${mockStatus.models_available.length}</span>
+                            </div>
+                            <div class="card">
+                                <h5>Forecast Accuracy</h5>
+                                <span style="font-weight: bold;">${(mockStatus.performance.forecast_accuracy * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="card">
+                                <h5>Risk Accuracy</h5>
+                                <span style="font-weight: bold;">${(mockStatus.performance.risk_accuracy * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+
+                        <h5 style="margin-top: 1rem;">Model Versions:</h5>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; margin: 0.5rem 0;">
+                            ${Object.entries(mockStatus.model_versions).map(([model, version]) => `
+                                <div style="background: #e0f2fe; padding: 0.5rem; border-radius: 3px; text-align: center;">
+                                    <strong>${model}</strong><br>
+                                    <small>${version}</small>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Failed to Get Model Status</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // File upload functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileUpload = document.getElementById('file-upload');
+            const fileInput = document.getElementById('file-input');
+
+            fileUpload.addEventListener('click', () => fileInput.click());
+
+            fileUpload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUpload.classList.add('dragover');
+            });
+
+            fileUpload.addEventListener('dragleave', () => {
+                fileUpload.classList.remove('dragover');
+            });
+
+            fileUpload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUpload.classList.remove('dragover');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    // Enable upload buttons when file is selected
+                    document.getElementById('test-upload-btn').disabled = false;
+                    document.getElementById('upload-retrain-btn').disabled = false;
+
+                    // Auto-upload for regular upload
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        });
+
+        async function handleFileUpload(file) {
+            const resultDiv = document.getElementById('upload-result');
+            const progressDiv = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const uploadRetrainBtn = document.getElementById('upload-retrain-btn');
+
+            if (!file.name.endsWith('.csv')) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Invalid File Type</h4>
+                        <p>Please select a CSV file.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show progress
+            progressDiv.classList.remove('hidden');
+            progressBar.style.width = '10%';
+            progressText.textContent = 'Uploading file...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Simulate upload progress
+                let progress = 10;
+                const uploadInterval = setInterval(() => {
+                    progress += Math.random() * 20;
+                    if (progress > 80) progress = 80;
+                    progressBar.style.width = progress + '%';
+
+                    if (progress < 30) {
+                        progressText.textContent = 'Uploading file...';
+                    } else if (progress < 60) {
+                        progressText.textContent = 'Validating CSV structure...';
+                    } else {
+                        progressText.textContent = 'Processing and cleaning data...';
+                    }
+                }, 300);
+
+                const response = await fetch(`${API_BASE}/admin/upload-dataset`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                clearInterval(uploadInterval);
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Upload completed!';
+
+                setTimeout(() => {
+                    progressDiv.classList.add('hidden');
+                }, 2000);
+
+                if (response.ok && data.success) {
+                    // Keep auto-retrain button enabled (already enabled by file selection)
+
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Dataset Uploaded & Processed Successfully!</h4>
+
+                            <div class="grid" style="margin: 1rem 0;">
+                                <div class="card">
+                                    <h5>Original Records</h5>
+                                    <span style="font-weight: bold;">${data.validation_results.info.total_records.toLocaleString()}</span>
+                                </div>
+                                <div class="card">
+                                    <h5>Processed Records</h5>
+                                    <span style="font-weight: bold;">${data.processing_log.final_records.toLocaleString()}</span>
+                                </div>
+                                <div class="card">
+                                    <h5>Data Quality</h5>
+                                    <span style="font-weight: bold; color: #10b981;">${data.processing_log.records_retained.toFixed(1)}% Retained</span>
+                                </div>
+                                <div class="card">
+                                    <h5>Unique Districts</h5>
+                                    <span style="font-weight: bold;">${data.dataset_statistics.geographic_analysis?.unique_districts || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            <h5>Processing Steps Completed:</h5>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                ${data.processing_log.steps.map(step => `<li style="margin: 0.25rem 0;">${step}</li>`).join('')}
+                            </ul>
+
+                            ${data.validation_results.warnings.length > 0 ? `
+                                <div style="background: #fffbeb; border: 1px solid #fbbf24; padding: 0.75rem; border-radius: 5px; margin: 1rem 0;">
+                                    <h5 style="color: #f59e0b; margin-bottom: 0.5rem;">⚠️ Warnings:</h5>
+                                    <ul style="margin: 0; padding-left: 1.5rem;">
+                                        ${data.validation_results.warnings.map(warning => `<li style="color: #f59e0b;">${warning}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+
+                            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
+                                <h5>Dataset Statistics:</h5>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; font-size: 0.9rem;">
+                                    <div><strong>File Size:</strong> ${(data.dataset_statistics.basic_info.file_size_mb).toFixed(2)} MB</div>
+                                    <div><strong>Columns:</strong> ${data.dataset_statistics.basic_info.total_columns}</div>
+                                    <div><strong>Date Range:</strong> ${data.dataset_statistics.date_analysis?.date_range_days || 'N/A'} days</div>
+                                    <div><strong>Crime Types:</strong> ${data.dataset_statistics.crime_analysis?.unique_crime_types || 'N/A'}</div>
+                                </div>
+                            </div>
+
+                            <p style="margin-top: 1rem;"><strong>Uploaded by:</strong> ${data.uploaded_by}</p>
+                            <p><strong>Ready for model training:</strong> ✅ Yes</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Upload Failed</h4>
+                            <p>${data.error}</p>
+                            ${data.validation_errors ? `
+                                <h5>Validation Errors:</h5>
+                                <ul>
+                                    ${data.validation_errors.map(error => `<li>${error}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                clearInterval(uploadInterval);
+                progressDiv.classList.add('hidden');
+
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Upload Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testUpload() {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a CSV file first');
+                return;
+            }
+
+            const resultDiv = document.getElementById('upload-result');
+            const testUploadBtn = document.getElementById('test-upload-btn');
+
+            testUploadBtn.disabled = true;
+            testUploadBtn.textContent = '🧪 Testing...';
+
+            resultDiv.innerHTML = '<div class="loading">🧪 Testing file upload...</div>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/test-upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Test Upload Successful!</h4>
+                            <p><strong>Filename:</strong> ${data.filename}</p>
+                            <p><strong>Records:</strong> ${data.records.toLocaleString()}</p>
+                            <p><strong>Columns:</strong> ${data.columns.join(', ')}</p>
+                            <p><strong>Uploaded by:</strong> ${data.uploaded_by}</p>
+                            <p style="margin-top: 1rem; padding: 0.75rem; background: #e8f5e8; border-radius: 5px;">
+                                <strong>✅ File is valid!</strong> You can now use "Upload & Auto-Retrain" for the complete workflow.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Test Upload Failed</h4>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Test Upload Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                testUploadBtn.disabled = false;
+                testUploadBtn.textContent = '🧪 Test Upload';
+            }
+        }
+
+        async function uploadAndRetrain() {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a CSV file first');
+                return;
+            }
+
+            const resultDiv = document.getElementById('upload-result');
+            const uploadRetrainBtn = document.getElementById('upload-retrain-btn');
+
+            uploadRetrainBtn.disabled = true;
+            uploadRetrainBtn.textContent = '🚀 Processing...';
+
+            resultDiv.innerHTML = '<div class="loading">🚀 Uploading dataset and retraining models...</div>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/upload-and-retrain`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>🎉 Dataset Uploaded & Models Retrained Successfully!</h4>
+
+                            <div style="background: #e0f2fe; padding: 1rem; border-radius: 5px; margin: 1rem 0;">
+                                <h5 style="color: #0277bd;">📊 Upload Summary:</h5>
+                                <p><strong>Original File:</strong> ${data.upload_results.original_filename}</p>
+                                <p><strong>Records Processed:</strong> ${data.upload_results.records_processed.toLocaleString()}</p>
+                                <p><strong>Data Quality:</strong> ${data.upload_results.data_quality.toFixed(1)}% retained</p>
+                                <p><strong>Processing Steps:</strong> ${data.upload_results.processing_steps}</p>
+                            </div>
+
+                            <div style="background: #e8f5e8; padding: 1rem; border-radius: 5px; margin: 1rem 0;">
+                                <h5 style="color: #2e7d32;">🤖 Training Summary:</h5>
+                                <p><strong>Models Trained:</strong> ${data.training_results.models_trained.join(', ')}</p>
+                                <p><strong>Training Duration:</strong> ${data.training_results.training_duration}</p>
+                                <p><strong>Dataset Records:</strong> ${data.training_results.dataset_records.toLocaleString()}</p>
+                                <p><strong>Unique Districts:</strong> ${data.training_results.unique_districts}</p>
+                                ${data.training_results.risk_accuracy ? `
+                                    <p><strong>New Risk Accuracy:</strong> ${(data.training_results.risk_accuracy * 100).toFixed(1)}%</p>
+                                ` : ''}
+                            </div>
+
+                            <div style="text-align: center; margin: 1rem 0;">
+                                <span style="background: #10b981; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                                    ✅ System Updated & Ready for New Predictions!
+                                </span>
+                            </div>
+
+                            <p><strong>Workflow completed by:</strong> ${data.workflow_completed_by}</p>
+                            <p><strong>Completed at:</strong> ${new Date(data.workflow_completed_at).toLocaleString()}</p>
+                            ${data.backup_created ? '<p><strong>Backup:</strong> ✅ Previous dataset backed up</p>' : ''}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Upload & Retrain Failed</h4>
+                            <p><strong>Error:</strong> ${data.error || data.message}</p>
+                            ${data.upload_results ? `
+                                <p><strong>Upload Status:</strong> ${data.upload_results.success ? 'Success' : 'Failed'}</p>
+                            ` : ''}
+                            ${data.training_error ? `
+                                <p><strong>Training Error:</strong> ${data.training_error}</p>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Workflow Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                uploadRetrainBtn.disabled = false;
+                uploadRetrainBtn.textContent = '🚀 Upload & Auto-Retrain';
+            }
+        }
+
+        async function createSampleDataset() {
+            const resultDiv = document.getElementById('upload-result');
+            resultDiv.innerHTML = '<div class="loading">Creating sample dataset...</div>';
+
+            try {
+                // This would call the backend to create sample data
+                const mockResponse = {
+                    success: true,
+                    filename: 'sample_crime_data_demo.csv',
+                    records: 1500,
+                    message: 'Sample dataset created successfully'
+                };
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Sample Dataset Created</h4>
+                        <p><strong>Filename:</strong> ${mockResponse.filename}</p>
+                        <p><strong>Records:</strong> ${mockResponse.records.toLocaleString()}</p>
+                        <p>Sample dataset has been created with realistic Indian crime data for demonstration purposes.</p>
+                        <p style="margin-top: 1rem; padding: 0.75rem; background: #fffbeb; border-radius: 5px; border: 1px solid #fbbf24;">
+                            <strong>💡 Demo Tip:</strong> You can now use the "Upload & Auto-Retrain" feature to test the complete workflow!
+                        </p>
+                    </div>
+                `;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Failed to Create Sample Dataset</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

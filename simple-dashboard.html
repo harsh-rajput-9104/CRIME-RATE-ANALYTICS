@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Rate Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #2563eb;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .tab.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .tab:hover {
+            background: #e5e7eb;
+        }
+        
+        .tab.active:hover {
+            background: #1d4ed8;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .card {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .card h4 {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-healthy { background: #10b981; }
+        .status-error { background: #ef4444; }
+        .status-warning { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Crime Rate Analytics Dashboard</h1>
+        <p>Enhancing Safety Through Crime Rate Forecasting - Delhi NCR Region</p>
+    </div>
+
+    <div class="container">
+        <!-- Status Section -->
+        <div class="tab-content active">
+            <h2>System Status</h2>
+            <div id="status-info" class="grid">
+                <div class="card">
+                    <h4>Backend API</h4>
+                    <div id="api-status">
+                        <span class="status-indicator status-warning"></span>
+                        Checking...
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Dataset</h4>
+                    <div id="dataset-status">
+                        <span class="status-indicator status-warning"></span>
+                        Checking...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('status')">Status</button>
+            <button class="tab" onclick="showTab('forecast')">Forecast</button>
+            <button class="tab" onclick="showTab('risk')">Risk Prediction</button>
+            <button class="tab" onclick="showTab('hotspot')">Hotspot Map</button>
+        </div>
+
+        <!-- Status Tab -->
+        <div id="status-tab" class="tab-content active">
+            <h2>API Health Check</h2>
+            <button class="btn" onclick="checkHealth()">Check System Health</button>
+            <div id="health-result"></div>
+        </div>
+
+        <!-- Forecast Tab -->
+        <div id="forecast-tab" class="tab-content">
+            <h2>Crime Forecasting</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="district">District:</label>
+                    <select id="district">
+                        <option value="all">All Districts</option>
+                        <option value="central-delhi">Central Delhi</option>
+                        <option value="south-delhi">South Delhi</option>
+                        <option value="north-delhi">North Delhi</option>
+                        <option value="east-delhi">East Delhi</option>
+                        <option value="west-delhi">West Delhi</option>
+                        <option value="gurgaon">Gurgaon</option>
+                        <option value="noida">Noida</option>
+                        <option value="faridabad">Faridabad</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="months">Months Ahead:</label>
+                    <select id="months">
+                        <option value="3">3 Months</option>
+                        <option value="6">6 Months</option>
+                        <option value="12">12 Months</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="generateForecast()">Generate Forecast</button>
+            <div id="forecast-result"></div>
+        </div>
+
+        <!-- Risk Prediction Tab -->
+        <div id="risk-tab" class="tab-content">
+            <h2>Risk Prediction</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="total-crimes">Total Crimes:</label>
+                    <input type="number" id="total-crimes" value="100" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="crime-rate">Crime Rate (per 1000):</label>
+                    <input type="number" id="crime-rate" value="10.0" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="violent-crimes">Violent Crimes:</label>
+                    <input type="number" id="violent-crimes" value="10" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="property-crimes">Property Crimes:</label>
+                    <input type="number" id="property-crimes" value="50" min="0">
+                </div>
+            </div>
+            <button class="btn" onclick="predictRisk()">Predict Risk Level</button>
+            <div id="risk-result"></div>
+        </div>
+
+        <!-- Hotspot Map Tab -->
+        <div id="hotspot-tab" class="tab-content">
+            <h2>Crime Hotspot Map</h2>
+            <button class="btn" onclick="generateHotspotMap()">Generate Hotspot Map</button>
+            <div id="hotspot-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // API functions
+        async function checkHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.innerHTML = '<div class="loading">Checking health...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ System Healthy</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+                
+                updateStatus('api', true);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Health Check Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                updateStatus('api', false);
+            }
+        }
+
+        async function generateForecast() {
+            const resultDiv = document.getElementById('forecast-result');
+            const district = document.getElementById('district').value;
+            const months = parseInt(document.getElementById('months').value);
+
+            resultDiv.innerHTML = '<div class="loading">Generating forecast...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/forecast-district`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ district, months_ahead: months })
+                });
+                
+                const data = await response.json();
+
+                // Generate charts HTML
+                let chartsHtml = '';
+                if (data.charts && !data.charts.error) {
+                    chartsHtml = `
+                        <div style="margin-top: 2rem;">
+                            <h4>📈 Forecast Analysis Charts</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                ${data.charts.model_performance ? `
+                                    <div>
+                                        <h5>Model Performance Comparison</h5>
+                                        <img src="data:image/png;base64,${data.charts.model_performance}" style="width: 100%; max-width: 600px;" alt="Model Performance Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.forecast_trend ? `
+                                    <div>
+                                        <h5>Forecast Trend Analysis</h5>
+                                        <img src="data:image/png;base64,${data.charts.forecast_trend}" style="width: 100%; max-width: 600px;" alt="Forecast Trend Chart">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let forecastHtml = `
+                    <div class="success">
+                        <h3>📊 Forecast Generated</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                            <div class="card">
+                                <h4>District</h4>
+                                <span style="font-weight: bold;">${data.district}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Best Model</h4>
+                                <span style="font-weight: bold; color: #2563eb;">${data.best_model.toUpperCase()}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Forecast Period</h4>
+                                <span style="font-weight: bold;">${data.months_ahead} months</span>
+                            </div>
+                        </div>
+
+                        <h4>Model Performance Metrics:</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                            ${Object.entries(data.model_performance).map(([model, metrics]) => `
+                                <div class="card" style="background: ${model === data.best_model ? '#e0f2fe' : '#f8f9fa'};">
+                                    <h5 style="margin-bottom: 0.5rem; color: ${model === data.best_model ? '#0277bd' : '#333'};">
+                                        ${model.toUpperCase()} ${model === data.best_model ? '(Best)' : ''}
+                                    </h5>
+                                    <div style="font-size: 0.9rem;">
+                                        <div>MAE: ${metrics.mae.toFixed(2)}</div>
+                                        <div>MSE: ${metrics.mse.toFixed(2)}</div>
+                                        <div>RMSE: ${metrics.rmse.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <h4>Forecast Data:</h4>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">Month</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">ARIMA</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">SARIMA</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">LSTM</th>
+                                    <th style="padding: 0.5rem; border: 1px solid #ddd;">Best Prediction</th>
+                                </tr>
+                `;
+
+                data.forecast_data.forEach(row => {
+                    const bestValue = row[data.best_model];
+                    forecastHtml += `
+                        <tr>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd; font-weight: bold;">${row.month}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.arima}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.sarima}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd;">${row.lstm}</td>
+                            <td style="padding: 0.5rem; border: 1px solid #ddd; background: #e8f5e8; font-weight: bold;">${bestValue}</td>
+                        </tr>
+                    `;
+                });
+
+                forecastHtml += `
+                            </table>
+                        </div>
+                        ${chartsHtml}
+                    </div>
+                `;
+                resultDiv.innerHTML = forecastHtml;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Forecast Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function predictRisk() {
+            const resultDiv = document.getElementById('risk-result');
+            const features = {
+                total_crimes: parseInt(document.getElementById('total-crimes').value),
+                crime_rate: parseFloat(document.getElementById('crime-rate').value),
+                violent_crimes: parseInt(document.getElementById('violent-crimes').value),
+                property_crimes: parseInt(document.getElementById('property-crimes').value)
+            };
+
+            resultDiv.innerHTML = '<div class="loading">Predicting risk...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/predict-risk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ features })
+                });
+                
+                const data = await response.json();
+                
+                const riskColor = data.risk_level === 'High' ? '#ef4444' : 
+                                 data.risk_level === 'Medium' ? '#f59e0b' : '#10b981';
+                
+                let chartsHtml = '';
+                if (data.charts && !data.charts.error) {
+                    chartsHtml = `
+                        <div style="margin-top: 2rem;">
+                            <h4>📊 Risk Analysis Charts</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                ${data.charts.risk_pie ? `
+                                    <div>
+                                        <h5>Risk Probability Distribution</h5>
+                                        <img src="data:image/png;base64,${data.charts.risk_pie}" style="width: 100%; max-width: 400px;" alt="Risk Pie Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.feature_importance ? `
+                                    <div>
+                                        <h5>Feature Importance</h5>
+                                        <img src="data:image/png;base64,${data.charts.feature_importance}" style="width: 100%; max-width: 400px;" alt="Feature Importance Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.crime_distribution ? `
+                                    <div>
+                                        <h5>Crime Distribution</h5>
+                                        <img src="data:image/png;base64,${data.charts.crime_distribution}" style="width: 100%; max-width: 400px;" alt="Crime Distribution Chart">
+                                    </div>
+                                ` : ''}
+                                ${data.charts.time_pattern ? `
+                                    <div>
+                                        <h5>Time-based Crime Pattern</h5>
+                                        <img src="data:image/png;base64,${data.charts.time_pattern}" style="width: 100%; max-width: 400px;" alt="Time Pattern Chart">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>🎯 Risk Prediction Results</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                            <div class="card">
+                                <h4>Risk Level</h4>
+                                <span style="color: ${riskColor}; font-weight: bold; font-size: 1.5rem;">${data.risk_level}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Risk Score</h4>
+                                <span style="font-weight: bold; font-size: 1.2rem;">${data.risk_score || 'N/A'}</span>
+                            </div>
+                            <div class="card">
+                                <h4>Confidence</h4>
+                                <span style="font-weight: bold; font-size: 1.2rem;">${(data.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="card">
+                                <h4>Model Accuracy</h4>
+                                <span style="font-weight: bold; font-size: 1.2rem;">${(data.model_accuracy * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+
+                        <h4>Risk Probabilities:</h4>
+                        <div style="margin: 1rem 0;">
+                            ${Object.entries(data.risk_probability).map(([level, prob]) => `
+                                <div style="display: flex; align-items: center; margin: 0.5rem 0;">
+                                    <span style="width: 80px; font-weight: bold;">${level}:</span>
+                                    <div style="flex: 1; background: #e5e7eb; height: 20px; border-radius: 10px; margin: 0 1rem; overflow: hidden;">
+                                        <div style="width: ${(prob * 100).toFixed(1)}%; height: 100%; background: ${level === 'High' ? '#ef4444' : level === 'Medium' ? '#f59e0b' : '#10b981'}; border-radius: 10px;"></div>
+                                    </div>
+                                    <span style="width: 60px; text-align: right;">${(prob * 100).toFixed(1)}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        ${chartsHtml}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Risk Prediction Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function generateHotspotMap() {
+            const resultDiv = document.getElementById('hotspot-result');
+            resultDiv.innerHTML = '<div class="loading">Generating hotspot map...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/hotspot-map`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>🗺️ Hotspot Map Generated</h3>
+                        <p><a href="${API_BASE}${data.map_url}" target="_blank" class="btn">Open Map in New Tab</a></p>
+                        <iframe src="${API_BASE}${data.map_url}" width="100%" height="400" style="border: 1px solid #ddd; margin-top: 1rem;"></iframe>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Map Generation Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStatus(component, isHealthy) {
+            const statusElement = document.getElementById(`${component}-status`);
+            if (statusElement) {
+                const indicator = statusElement.querySelector('.status-indicator');
+                if (isHealthy) {
+                    indicator.className = 'status-indicator status-healthy';
+                    statusElement.innerHTML = '<span class="status-indicator status-healthy"></span>Healthy';
+                } else {
+                    indicator.className = 'status-indicator status-error';
+                    statusElement.innerHTML = '<span class="status-indicator status-error"></span>Error';
+                }
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            checkHealth();
+        };
+    </script>
+</body>
+</html>
